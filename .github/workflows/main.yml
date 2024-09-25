@@ -49,15 +49,17 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Check if requirements.txt has changed
-        id: check  # Define step ID to reference its output
+        id: check
         run: |
           if git diff --quiet HEAD^ HEAD -- requirements.txt; then
+            echo "No changes in requirements.txt"
             echo "LAYER_UPDATE=false" >> $GITHUB_ENV
             echo "::set-output name=layer_update::false"
           else
             echo "Changes in requirements.txt detected"
             echo "LAYER_UPDATE=true" >> $GITHUB_ENV
             echo "::set-output name=layer_update::true"
+          fi
 
   # Step 2: Deploy the Lambda Layer if requirements.txt has changed
   deploy-layer:
