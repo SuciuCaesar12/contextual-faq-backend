@@ -37,13 +37,11 @@ on:
       - main
 
 jobs:
-  # Step 1: Check if requirements.txt has changed
-  check-layer:
+  # Step 1: Check if requirements.txt has changed (already present)
+  check-requirements:
     runs-on: ubuntu-latest
-
     outputs:
-      layer_update: ${{ steps.check.outputs.layer_update }}  # Pass the check result to the next jobs
-
+      layer_update: ${{ steps.check.outputs.layer_update }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -52,19 +50,14 @@ jobs:
         id: check
         run: |
           if git diff --quiet HEAD^ HEAD -- requirements.txt; then
-            echo "No changes in requirements.txt"
-            echo "LAYER_UPDATE=false" >> $GITHUB_ENV
             echo "::set-output name=layer_update::false"
           else
-            echo "Changes in requirements.txt detected"
-            echo "LAYER_UPDATE=true" >> $GITHUB_ENV
             echo "::set-output name=layer_update::true"
-          fi
 
   # Step 2: Deploy the Lambda Layer if requirements.txt has changed
-  deploy-layer:
-    if: ${{ needs.check-layer.outputs.layer_update == 'true' }}  # Check the output from check-layer job
-    needs: check-layer  # Ensure this runs after the check-layer job
+  deploy-dependencies-layer:
+    needs: check-requirements  # Ensure this runs after the check-requirements job
+    if: ${{ needs.check-requirements.outputs.layer_update == 'true' }}  # Check the output from check-requirements job
     runs-on: ubuntu-latest
 
     steps:
@@ -89,27 +82,31 @@ jobs:
         run: |
           zip -r layer.zip python/
 
-      - name: Deploy the Layer to AWS
+      - name: Update Lambda Layer to AWS
         uses: appleboy/lambda-action@v0.2.0
         with:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "us-east-1"
-          FUNCTION_NAME: "upload-layer-function"
-          LAYER_NAME: "fastapi-dependencies-layer"
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          FUNCTION_NAME: ContextualFAQDependencies,
           zip_file: layer.zip
 
+  # Step 3: Always get the latest Lambda Layer ARN, even if no update was made
+  get-latest-layer-arn:
+    needs: [check-requirements, deploy-dependencies-layer]
+    runs-on: ubuntu-latest
+    steps:
       - name: Get Latest Layer ARN
         id: get-latest-layer-arn
         run: |
-          LATEST_LAYER_ARN=$(aws lambda list-layer-versions --layer-name fastapi-dependencies-layer \
+          LATEST_LAYER_ARN=$(aws lambda list-layer-versions --layer-name ContextualFAQDependencies \
             --query 'LayerVersions[0].LayerVersionArn' --output text)
           echo "LATEST_LAYER_ARN=$LATEST_LAYER_ARN" >> $GITHUB_ENV
           echo "::set-output name=latest_layer_arn::$LATEST_LAYER_ARN"
 
-  # Step 3: Deploy the FastAPI code and attach the updated layer
-  deploy-function:
-    needs: [check-layer, deploy-layer]  # Wait for both the check and deploy-layer jobs
+  # Step 4: Deploy the FastAPI code and attach the updated layer
+  deploy-backend:
+    needs: [check-requirements, deploy-depedencies-layer]  # Wait for both the check and deploy-depedencies-layer jobs
     runs-on: ubuntu-latest
 
     steps:
@@ -137,13 +134,18 @@ jobs:
         with:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "us-east-1"
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
           FUNCTION_NAME: ContextualFAQBackend
           HANDLER: app.handler
-          zip_file: deployment-package.zip
+          run: |
+            LATEST_LAYER_ARN=$(aws lambda list-layer-versions --layer-name ContextualFAQDependencies \
+              --query 'LayerVersions[0].LayerVersionArn' --output text)
+            echo "LATEST_LAYER_ARN=$LATEST_LAYER_ARN" >> $GITHUB_ENV
+            echo "::set-output name=latest_layer_arn::$LATEST_LAYER_ARN"
+          layers: ${{ steps.get-latest-layer-arn.outputs.latest_layer_arn }}
 
-      - name: Attach the Updated Lambda Layer
-        if: ${{ needs.check-layer.outputs.layer_update == 'true' }}  # Attach only if the layer was updated
-        run: |
-          aws lambda update-function-configuration --function-name ContextualFAQBackend \
-          --layers ${{ needs.deploy-layer.outputs.latest_layer_arn }}
+      # - name: Attach the Updated Lambda Layer
+      #   if: ${{ needs.check-requirements.outputs.layer_update == 'true' }}
+      #   run: |
+      #     aws lambda update-function-configuration --function-name ContextualFAQBackend \
+      #     --layers ${{ needs.deploy-depedencies-layer.outputs.latest_layer_arn }}
