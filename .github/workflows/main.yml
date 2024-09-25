@@ -88,10 +88,6 @@ jobs:
       - name: Zip the layer
         run: |
           zip -r layer.zip python/
-  
-      - name: List files in the current directory for debugging
-        run: |
-          ls -al  # List all files to check where the zip file is located
 
       - name: Deploy the Layer to AWS
         uses: appleboy/lambda-action@v0.2.0
@@ -101,7 +97,7 @@ jobs:
           AWS_DEFAULT_REGION: "us-east-1"
           FUNCTION_NAME: "upload-layer-function"
           LAYER_NAME: "fastapi-dependencies-layer"
-          zip-file: layer.zip
+          zip_file: layer.zip
 
       - name: Get Latest Layer ARN
         id: get-latest-layer-arn
