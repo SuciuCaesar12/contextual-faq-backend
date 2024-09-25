@@ -140,7 +140,7 @@ jobs:
           AWS_DEFAULT_REGION: "us-east-1"
           FUNCTION_NAME: ContextualFAQBackend
           HANDLER: app.handler
-          zip-file: deployment-package.zip
+          zip_file: deployment-package.zip
 
       - name: Attach the Updated Lambda Layer
         if: ${{ needs.check-layer.outputs.layer_update == 'true' }}  # Attach only if the layer was updated
