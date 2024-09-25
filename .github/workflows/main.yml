@@ -53,6 +53,7 @@ jobs:
             echo "::set-output name=layer_update::false"
           else
             echo "::set-output name=layer_update::true"
+          fi
 
   # Step 2: Deploy the Lambda Layer if requirements.txt has changed
   deploy-dependencies-layer:
