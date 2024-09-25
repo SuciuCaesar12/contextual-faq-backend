@@ -106,7 +106,7 @@ jobs:
 
   # Step 4: Deploy the FastAPI code and attach the updated layer
   deploy-backend:
-    needs: [check-requirements, deploy-depedencies-layer]  # Wait for both the check and deploy-depedencies-layer jobs
+    needs: [check-requirements, deploy-dependencies-layer]  # Wait for both the check and deploy-depedencies-layer jobs
     runs-on: ubuntu-latest
 
     steps:
