@@ -1,0 +1,28 @@
+name: Deploy Lambda Function
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+
+jobs:
+  deploy-lambda:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Zip Application Code
+        run: zip -r application.zip ./src
+
+      - name: Deploy to AWS Lambda
+        run: |
+          aws lambda update-function-code 
+          --function-name ${{ secrets.FUNCTION_NAME }} 
+          --zip-file fileb://application.zip
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
