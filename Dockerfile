@@ -7,6 +7,8 @@ WORKDIR /app
 # Copy the requirements file into the container
 COPY requirements.txt .
 
+RUN yum install gcc -y
+
 # Install the required Python packages
 RUN pip install --no-cache-dir -r requirements.txt
 
