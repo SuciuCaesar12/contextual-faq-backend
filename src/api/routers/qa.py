@@ -11,7 +11,7 @@ router = APIRouter(
     prefix="/api/qa",
     tags=["qa"],
     responses={404: {"description": "Not found"}},
-    # dependencies=[Depends(verify_token)]
+    dependencies=[Depends(verify_token)]
 )
 
 

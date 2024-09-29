@@ -81,7 +81,7 @@ protected_router = APIRouter(
     prefix="/api/user",
     tags=["users"],
     responses={404: {"description": "Not found"}},
-    # dependencies=[Depends(verify_token)],
+    dependencies=[Depends(verify_token)],
 )
 
 @protected_router.get("/", response_model=UserSchema)

@@ -9,7 +9,7 @@ router = APIRouter(
     prefix="/api/chat",
     tags=["chat"],
     responses={404: {"description": "Not found"}},
-    # dependencies=[Depends(verify_token)]
+    dependencies=[Depends(verify_token)]
 )
 
 
