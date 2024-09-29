@@ -18,13 +18,22 @@ class Settings(BaseSettings):
 settings = Settings()
 
 
+print('OPENAI_API_KEY')
+print(f'Type: {type(settings.OPENAI_API_KEY)}')
+print(f'Value: {settings.OPENAI_API_KEY}')
 
-if isinstance(settings.OPENAI_API_KEY, dict):
-    settings.OPENAI_API_KEY = settings.OPENAI_API_KEY['OPENAI_API_KEY']
+print('JWT_SECRET_KEY')
+print(f'Type: {type(settings.JWT_SECRET_KEY)}')
+print(f'Value: {settings.JWT_SECRET_KEY}')
 
-if isinstance(settings.JWT_SECRET_KEY, dict):
-    settings.JWT_SECRET_KEY = settings.JWT_SECRET_KEY['JWT_SECRET_KEY']
+# if isinstance(settings.OPENAI_API_KEY, dict):
+#     print(f"OPENAI_API_KEY: {settings.OPENAI_API_KEY}")
+#     settings.OPENAI_API_KEY = settings.OPENAI_API_KEY['OPENAI_API_KEY']
+
+# if isinstance(settings.JWT_SECRET_KEY, dict):
+#     print(f"JWT_SECRET_KEY: {settings.JWT_SECRET_KEY}")
+#     settings.JWT_SECRET_KEY = settings.JWT_SECRET_KEY['JWT_SECRET_KEY']
     
-print(settings.DATABASE_URL)
-print(settings.OPENAI_API_KEY)
-print(settings.JWT_SECRET_KEY)
+# print(settings.DATABASE_URL)
+# print(settings.OPENAI_API_KEY)
+# print(settings.JWT_SECRET_KEY)
