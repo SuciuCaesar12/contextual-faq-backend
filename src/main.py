@@ -2,10 +2,9 @@ import logging
 import sys
 from contextlib import asynccontextmanager
 
-# import uvicorn
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-# from mangum import Mangum
 
 from api.routers import topic_router, qa_router, chat_router, user_public_router, user_protected_router
 from config import settings
@@ -55,9 +54,5 @@ app.include_router(qa_router)
 app.include_router(chat_router)
 
 
-# handler = Mangum(app)
-
 # if __name__ == "__main__":
 #     uvicorn.run("main:app", reload=True, port=8000)
-
-# some comment
