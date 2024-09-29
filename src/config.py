@@ -37,3 +37,5 @@ print(f'Value: {settings.JWT_SECRET_KEY}')
 # print(settings.DATABASE_URL)
 # print(settings.OPENAI_API_KEY)
 # print(settings.JWT_SECRET_KEY)
+
+    
